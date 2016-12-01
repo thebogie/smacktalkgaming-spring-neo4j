@@ -29,8 +29,10 @@ public class PlayerService {
 		Authentication token = null;
 		try {
 
+			// TODO: FIX PLAYER FINDING BY LOGIN NAME
 			// is the player in the system?
-			Player player = pRepo.findByLoginLikeIgnoreCase(login);
+			Player player = null;
+			// pRepo.findByLoginLikeIgnoreCase(login);
 
 			if (player == null) {
 				throw new BadCredentialsException("1000");
@@ -54,7 +56,8 @@ public class PlayerService {
 	@Secured("ROLE_ADMIN")
 	public String getAllPlayersNames() {
 
-		return pRepo.getAllPlayersNames().toString();
+		return null;
+		// pRepo.getAllPlayersNames().toString();
 	}
 
 	@Secured({ "ROLE_ADMIN", "ROLE_USER" })

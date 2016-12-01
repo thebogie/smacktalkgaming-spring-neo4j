@@ -42,13 +42,24 @@ public class Location {
 		return uuid;
 	}
 
-	public String getLocation() {
-		return location;
+	public String getLongitude() {
+		return longitude;
 	}
 
-	public void setUUID(String uuid) {
-		// TODO: set UUID here
-		this.uuid = uuid;
+	public void setLongitude(String longitude) {
+		this.longitude = longitude;
+	}
+
+	public String getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(String latitude) {
+		this.latitude = latitude;
+	}
+
+	public String getLocation() {
+		return location;
 	}
 
 	public void setLocation(String location) {

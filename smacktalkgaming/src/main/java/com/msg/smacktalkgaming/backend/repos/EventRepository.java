@@ -13,10 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author mh
- * @since 24.07.12
- */
+
 // tag::repository[]
 // @RepositoryRestResource(collectionResourceRel = "events", path = "events")
 @Repository

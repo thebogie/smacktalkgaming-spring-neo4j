@@ -22,10 +22,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.voodoodyne.jackson.jsog.JSOGGenerator;
 
-//@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
-//@JsonIdentityInfo(generator = JSOGGenerator.class)
-// tag::player[]
-
 @NodeEntity(label = "event")
 public class Event {
 	public static final String ISO_8601_24H_STG_FORMAT = "yyyy-MM-dd'T'HH:mmXXX";

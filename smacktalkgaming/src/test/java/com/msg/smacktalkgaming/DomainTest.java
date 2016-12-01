@@ -5,12 +5,15 @@ import static org.junit.Assert.assertEquals;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
@@ -36,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.msg.smacktalkgaming.MyNeo4jTestConfiguration;
 import com.msg.smacktalkgaming.backend.domain.*;
+import com.msg.smacktalkgaming.backend.domain.Player.SecurityRole;
 import com.msg.smacktalkgaming.backend.repos.*;
 
 @RunWith(SpringRunner.class)
@@ -45,13 +49,17 @@ public class DomainTest {
 	// @Autowired
 	// private PlayerRepository playerRepository;
 
-	String nowAsISO, plusHourAsISO;
+	// String nowAsISO, plusHourAsISO;
+	ZonedDateTime utcNow, utcTwoHoursFromNow, birthdayTime;
 
 	@Autowired
 	private GameRepository gameRepository;
 
 	@Autowired
 	private EventRepository eventRepository;
+
+	@Autowired
+	private PlayerRepository playerRepository;
 	/*
 	 * Event savedevent;
 	 * 
@@ -59,7 +67,7 @@ public class DomainTest {
 	 * 
 	 * 
 	 * 
-	 * @Autowired private PlayerRepository playerRepository;
+	 * 
 	 * 
 	 * @Autowired private RecordRepository recordRepository;
 	 */
@@ -70,25 +78,22 @@ public class DomainTest {
 	@Before
 	public void initialize() throws ParseException {
 
-		TimeZone tz = TimeZone.getTimeZone("UTC");
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'"); // Quoted
-																		// "Z"
-																		// to
-																		// indicate
-																		// UTC,
-																		// no
-																		// timezone
-																		// offset
-		df.setTimeZone(tz);
+		// save date in UTC format
+		utcNow = ZonedDateTime.now(ZoneOffset.UTC);
+		utcTwoHoursFromNow = utcNow.plusHours(2);
+		birthdayTime = ZonedDateTime.parse("1995-12-03T00:00+00:00[UTC]");
 
-		Date d1 = new Date();
-		Calendar cl = Calendar.getInstance();
-		cl.setTime(d1);
-		cl.add(Calendar.HOUR, 1);
-		nowAsISO = df.format(d1);
-		plusHourAsISO = df.format(cl.getTime());
-		System.out.println("Set ISO Time:" + nowAsISO);
-		System.out.println("Set ISO Time + hour:" + plusHourAsISO);
+		/*
+		 * TimeZone tz = TimeZone.getTimeZone("UTC"); DateFormat df = new
+		 * SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'"); // Quoted // "Z" // to //
+		 * indicate // UTC, // no // timezone // offset df.setTimeZone(tz);
+		 * 
+		 * Date d1 = new Date(); Calendar cl = Calendar.getInstance();
+		 * cl.setTime(d1); cl.add(Calendar.HOUR, 1); nowAsISO = df.format(d1);
+		 * plusHourAsISO = df.format(cl.getTime());
+		 * System.out.println("Set ISO Time:" + nowAsISO);
+		 * System.out.println("Set ISO Time + hour:" + plusHourAsISO);
+		 */
 
 	}
 
@@ -98,29 +103,75 @@ public class DomainTest {
 	@Test
 	public void shouldBeAbleToAddAllAndDeleteDomainObjs() {
 
+		/**** PLAYER ****/
+		/* TODO: TEST EMPTY ARRAY OF ROLES */
+		Player player = new Player();
+		player.setFirstname("FIRSTNAME:" + utcNow.toString());
+		player.setSurname("SURNAME:" + utcNow.toString());
+		player.setNickname("NICK");
+		player.setCurrentevent("NICK");
+		// player.setBirthdate("11/11/2000");
+		// player.setBirthdate(new GregorianCalendar(1995, Calendar.FEBRUARY,
+		// 11).getTime());
+		player.setBirthdate(Date.from(birthdayTime.toInstant()));
+		player.setAlignment("ALIGNEMNT:" + utcNow.toString());
+		player.setLogin("thebogie@live.com");
+		player.setPassword("fish");
+		player.setInfo("fish2");
+		player.setRole(SecurityRole.ROLE_USER, SecurityRole.ROLE_ADMIN);
+		playerRepository.save(player);
+
+		Player foundplayer;
+		Collection<Player> foundplayers;
+
+		// FIND BY login and password
+		foundplayers = playerRepository.findByLoginLikeIgnoreCase("thebogie@live.com");
+
+		String playerUUID = null;
+		boolean passwordMatch = false;
+		// TODO: multople nodes with same email?
+		for (Iterator iterator = foundplayers.iterator(); iterator.hasNext();) {
+			Player p = (Player) iterator.next();
+
+			if (p.comparePassword("fish")) {
+				playerUUID = p.getUUID();
+				passwordMatch = true;
+				break;
+			}
+
+		}
+
+		assertEquals(passwordMatch, true);
+
+		playerRepository.delete(playerRepository.findByUUID(playerUUID));
+
+		// FIND BY UUID
+		foundplayer = playerRepository.findByUUID(playerUUID);
+		assertEquals(null, foundplayer);
+
 		/**** GAME ****/
 		Game game = new Game();
-		game.setName("GAME:" + nowAsISO);
-		game.setPublished("PUBLISH:" + nowAsISO);
+		game.setName("GAME:" + utcNow.toString());
+		game.setPublished("PUBLISH:" + utcNow.toString());
 		game.setBgglink("http://cnn.com");
 		gameRepository.save(game);
 
-		Game gameFound = gameRepository.findByName("GAME:" + nowAsISO);
+		Game gameFound = gameRepository.findByName("GAME:" + utcNow.toString());
 
 		System.out.println("UUID:" + gameFound.getUUID());
-		assertEquals("PUBLISH:" + nowAsISO, gameFound.getPublished());
-		assertEquals("GAME:" + nowAsISO, gameFound.getName());
+		assertEquals("PUBLISH:" + utcNow.toString(), gameFound.getPublished());
+		assertEquals("GAME:" + utcNow.toString(), gameFound.getName());
 		assertEquals("http://cnn.com", gameFound.getBgglink());
 
 		gameRepository.delete(gameFound);
 
-		gameFound = gameRepository.findByName("GAME:" + nowAsISO);
+		gameFound = gameRepository.findByName("GAME:" + utcNow.toString());
 		assertEquals(null, gameFound);
 
 		/**** EVENT ****/
 		Event event = new Event();
-		event.setStart(nowAsISO);
-		event.setStop(plusHourAsISO);
+		event.setStart(utcNow.toString());
+		event.setStop(utcTwoHoursFromNow.toString());
 
 		String eventUUID = event.getUUID();
 		String eventName = event.getEventname();
@@ -133,20 +184,14 @@ public class DomainTest {
 		System.out.println("EVTNAME:" + eventFound.getEventname());
 
 		assertEquals(eventFoundByEventName, eventFound);
-		assertEquals(nowAsISO, eventFound.getStart());
-		assertEquals(plusHourAsISO, eventFoundByEventName.getStop());
+		assertEquals(utcNow.toString(), eventFound.getStart());
+		assertEquals(utcTwoHoursFromNow.toString(), eventFoundByEventName.getStop());
 
 		eventRepository.delete(eventFound);
 
 		// FIND BY EVENTNAME
 		eventFound = eventRepository.findByEventname(eventName);
 		assertEquals(null, eventFound);
-
-		// System.out.println("findByNickname");
-		// String nickname = "masterblaster";
-		// Player result = mitch.findByNickname(nickname);
-		// assertNotNull(result);
-		// assertEquals("Lawful Good", result.getAlignment());
 
 	}
 

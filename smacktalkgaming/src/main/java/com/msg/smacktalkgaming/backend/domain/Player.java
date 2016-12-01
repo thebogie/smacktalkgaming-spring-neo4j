@@ -13,52 +13,46 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 
 import com.voodoodyne.jackson.jsog.JSOGGenerator;
 
+import org.springframework.context.annotation.Role;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-//@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
-//@JsonIdentityInfo(generator = JSOGGenerator.class)
-// tag::player[]
-@NodeEntity(label = "Player")
+@NodeEntity(label = "player")
 public class Player {
-	PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 	@GraphId
 	Long id;
 
-	// @Property(name = "UUID")
+	@Property(name = "uuid")
 	private String uuid;
 
-	@Property(name = "Firstname")
+	@Property(name = "firstname")
 	private String firstname;
 
-	// @Property(name = "Surname")
+	@Property(name = "surname")
 	private String surname;
 
-	// @Property(name = "Nickname")
+	@Property(name = "nickname")
 	private String nickname;
 
-	// @Property(name = "Birthdate")
+	@Property(name = "birthdate")
 	private Date birthdate;
 
-	// @Property(name = "Currentevent")
+	@Property(name = "currentevent")
 	private String currentevent;
 
-	// @Property(name = "Alignment")
+	@Property(name = "alignment")
 	private String alignment;
 
-	// @Property(name = "Admin")
-	private String admin;
-
-	// @Property(name = "Login")
+	@Property(name = "login")
 	private String login;
 
-	// @Property(name = "Password")
+	@Property(name = "password")
 	private String password;
 
-	// @Property(name = "Info")
+	@Property(name = "info")
 	private String info;
 
 	@Convert(PlayerRolesConverter.class)
@@ -73,6 +67,11 @@ public class Player {
 		}
 	}
 
+	// TODO: set UUID for all methods
+	public Player() {
+		this.uuid = DomainTools.getTimeBasedUUID();
+	}
+
 	public Player(String login, String firstname, String password) {
 		this.login = login;
 		this.firstname = firstname;
@@ -83,18 +82,23 @@ public class Player {
 		this.login = login;
 		this.firstname = firstname;
 		this.password = encode(password);
-		this.roles = roles;
+		// this.roles = roles;
 	}
 
 	private String encode(String password) {
-
+		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 		return passwordEncoder.encode(password);
 	}
 
 	/* SECURITY */
 
 	public SecurityRole[] getRole() {
-		return roles;
+		return null;
+	}
+
+	public void setRole(SecurityRole... roles) {
+		this.roles = roles;
+
 	}
 
 	public String getLogin() {
@@ -105,9 +109,13 @@ public class Player {
 		return password;
 	}
 
-	public boolean comparePassword(String password) {
+	public void setPassword(String password) {
+		this.password = encode(password);
+	}
 
-		return !passwordEncoder.matches(password, this.password);
+	public boolean comparePassword(String password) {
+		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+		return passwordEncoder.matches(password, this.password);
 	}
 
 	public String getInfo() {
@@ -152,8 +160,6 @@ public class Player {
 	 * 
 	 * // end::movie[]
 	 */
-	public Player() {
-	}
 
 	public String getUUID() {
 		return uuid;
@@ -183,17 +189,8 @@ public class Player {
 		return alignment;
 	}
 
-	public String getAdmin() {
-		return admin;
-	}
-
-	// public Collection<Role> getRoles() {
-	// return roles;
-	// }
-
-	public void setUUID(String uuid) {
-		// TODO: set UUID here
-		this.uuid = uuid;
+	public SecurityRole[] getRoles() {
+		return roles;
 	}
 
 	public void setFirstname(String firstname) {
@@ -220,16 +217,8 @@ public class Player {
 		this.alignment = alignment;
 	}
 
-	public void setAdmin(String admin) {
-		this.admin = admin;
-	}
-
 	public void setLogin(String login) {
 		this.login = login;
-	}
-
-	public void setPassword(String password) {
-		this.password = encode(password);
 	}
 
 }
