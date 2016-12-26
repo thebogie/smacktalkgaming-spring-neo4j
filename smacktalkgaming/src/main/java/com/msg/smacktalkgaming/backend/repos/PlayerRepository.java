@@ -10,14 +10,26 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.msg.smacktalkgaming.backend.domain.Event;
+import com.msg.smacktalkgaming.backend.domain.Glicko2;
 import com.msg.smacktalkgaming.backend.domain.Player;
+import com.msg.smacktalkgaming.backend.domain.Record;
 
 //tag::repository[]
 @Repository
 public interface PlayerRepository extends GraphRepository<Player> {
 
+	// find the place and result for a player for an event
+	@Query("match (p:player {uuid:{playeruuid}})-[r:PLAYED_IN]->(e:event {uuid:{eventuuid}}) return r")
+	// @Query("match ((p:player) WHERE p.uuid =
+	// {playeruuid})-[r:PLAYED_IN]->((e:event) WHERE e.eventuuid = {eventuuid})
+	// return r")
+	Record getRecordForPlayerFromEvent(@Param("eventuuid") String eventuuid, @Param("playeruuid") String playeruuid);
+
 	@Query("MATCH (p:player) WHERE p.uuid = {uuid} RETURN p")
 	Player findByUUID(@Param("uuid") String uuid);
+
+	@Query("MATCH (p:player {uuid:{uuid}})-[r:CURRENT_RATING]-(m) RETURN m")
+	Glicko2 findGlicko2CurrentRating(@Param("uuid") String uuid);
 
 	// @Query("MATCH (p:player) RETURN p")
 	// Collection<Player> getAllPlayers();
@@ -26,7 +38,7 @@ public interface PlayerRepository extends GraphRepository<Player> {
 	// List<String> getAllPlayersNames();
 
 	@Query("MATCH (p:player) WHERE p.login = {login}  RETURN p")
-	Collection<Player> findByLoginLikeIgnoreCase(@Param("login") String login);
+	Collection<Player> findByLogin(@Param("login") String login);
 
 	/* A version to fetch List instead of Page to avoid extra count query. */
 	// @Query("MATCH (n) WHERE id(n)={0} RETURN n")

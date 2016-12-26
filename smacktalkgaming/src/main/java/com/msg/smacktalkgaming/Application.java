@@ -2,9 +2,9 @@ package com.msg.smacktalkgaming;
 
 import com.fasterxml.uuid.EthernetAddress;
 import com.fasterxml.uuid.Generators;
-import com.fasterxml.uuid.impl.TimeBasedGenerator;
 import com.msg.smacktalkgaming.backend.services.PlayerService;
 import com.msg.smacktalkgaming.security.VaadinSessionSecurityContextHolderStrategy;
+import com.vaadin.server.VaadinServlet;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -25,7 +25,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 public class Application {
 
-	
 	@Configuration
 	@Import(MyNeo4jConfiguration.class)
 	@EnableGlobalMethodSecurity(securedEnabled = true)
@@ -65,6 +64,7 @@ public class Application {
 			// Use a custom SecurityContextHolderStrategy
 			SecurityContextHolder.setStrategyName(VaadinSessionSecurityContextHolderStrategy.class.getName());
 		}
+
 	}
 
 	public static void main(String[] args) {

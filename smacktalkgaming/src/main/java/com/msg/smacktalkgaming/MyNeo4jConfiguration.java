@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class MyNeo4jConfiguration extends Neo4jConfiguration {
 
 	public static final String URL = System.getenv("NEO4J_URL") != null ? System.getenv("NEO4J_URL")
+			// : "http://neo4j:password@mymachine:7474";
 			: "http://neo4j:password@localhost:7474";
 
 	@Bean

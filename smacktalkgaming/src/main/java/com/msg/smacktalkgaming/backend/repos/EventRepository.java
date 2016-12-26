@@ -8,11 +8,11 @@ import org.springframework.stereotype.Repository;
 
 import com.msg.smacktalkgaming.backend.domain.Event;
 import com.msg.smacktalkgaming.backend.domain.Player;
+import com.msg.smacktalkgaming.backend.domain.Record;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
 
 // tag::repository[]
 // @RepositoryRestResource(collectionResourceRel = "events", path = "events")
@@ -20,14 +20,24 @@ import java.util.Map;
 public interface EventRepository extends GraphRepository<Event> {
 	Event findOne(Long id);
 
+	// find the place and result for a player for an event
+	@Query("match (p:player )-[r:PLAYED_IN]->(e:event {uuid:{eventuuid}}) return r")
+	Collection<Record> fromEventGetPlayersRecords(@Param("eventuuid") String eventuuid);
+
+	@Query("match (p:player {uuid:{playeruuid}} )-[r:PLAYED_IN]->(e:event {uuid:{eventuuid}}) return r")
+	Record fromEventGetAPlayerRecord(@Param("eventuuid") String eventuuid, @Param("playeruuid") String playeruuid);
+
 	@Query("MATCH (e:event) WHERE e.eventname = {eventname} RETURN e")
 	Event findByEventname(@Param("eventname") String eventname);
 
 	@Query("MATCH (e:event) WHERE e.uuid = {uuid} RETURN e")
 	Event findByUUID(@Param("uuid") String uuid);
 
-	@Query("MATCH (e:event)<-[r:PLAYED_IN]-(p:player) WHERE e.eventname = {eventname} return  count(r)")
-	int findNumberOfPlayers(@Param("eventname") String eventname);
+	@Query("MATCH (e:event)<-[r:PLAYED_IN]-(p:player) WHERE e.uuid = {uuid} return  count(r)")
+	int findNumberOfPlayers(@Param("uuid") String uuid);
+
+	@Query("MATCH (e:event)<-[r:PLAYED_IN]-(p:player) WHERE e.uuid = {uuid} return  p")
+	Collection<Player> getPlayersInEvent(@Param("uuid") String uuid);
 
 	// Player findByNickname(@Param("nickname") String nickname);
 

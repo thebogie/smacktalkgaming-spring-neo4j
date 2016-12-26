@@ -3,6 +3,7 @@ package com.msg.smacktalkgaming.backend.domain;
 import org.neo4j.ogm.annotation.*;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -21,6 +22,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @NodeEntity(label = "player")
 public class Player {
+
+	@Relationship(type = "CURRENT_RATING", direction = Relationship.OUTGOING)
+	Glicko2 currentrating = new Glicko2();
+
+	public Glicko2 getCurrentrating() {
+		return currentrating;
+	}
+
+	public void setCurrentrating(Glicko2 rating) {
+		this.currentrating = rating;
+	}
 
 	@GraphId
 	Long id;

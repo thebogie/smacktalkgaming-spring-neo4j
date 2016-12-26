@@ -1,6 +1,8 @@
 package com.msg.smacktalkgaming.backend.domain;
 
 import org.neo4j.ogm.annotation.*;
+import org.neo4j.ogm.annotation.typeconversion.Convert;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 
@@ -14,13 +16,15 @@ public class Record {
 
 	@GraphId
 	Long id;
-	@Property(name = "Result")
-	private String result;
 
-	@Property(name = "Place")
+	// @Convert(RecordConverter.class)
+	@Property(name = "result")
+	private enumContestResults result;
+
+	@Property(name = "place")
 	private int place;
 
-	@Property(name = "UUID")
+	@Property(name = "uuid")
 	private String uuid;
 
 	@StartNode
@@ -28,10 +32,20 @@ public class Record {
 	@EndNode
 	private Event event;
 
-	public Record() {
+	public enum enumContestResults {
+		DEMOLISH, WON, TIE, LOST, SKUNK, DROP, QUIT;
 	}
 
-	public Record(Player player, Event event, int place, String result) {
+	public Record() {
+
+		this.uuid = DomainTools.getTimeBasedUUID();
+	}
+
+	public String getUUID() {
+		return uuid;
+	}
+
+	public Record(Player player, Event event, short place, enumContestResults result) {
 		this.player = player;
 		this.event = event;
 		this.place = place;
@@ -42,7 +56,7 @@ public class Record {
 		return (place);
 	}
 
-	public String getResult() {
+	public enumContestResults getResult() {
 		return (result);
 	}
 
@@ -58,7 +72,7 @@ public class Record {
 		this.player = player;
 	}
 
-	public void setResult(String result) {
+	public void setResult(enumContestResults result) {
 		this.result = result;
 	}
 
@@ -72,6 +86,7 @@ public class Record {
 
 	@Override
 	public String toString() {
-		return String.format("%s played in %s and got %d place and %s", player, event, place, result);
+		return String.format("%s played in %s and got %d place and %s", player.getLogin(), event.getEventname(), place,
+				result);
 	}
 }

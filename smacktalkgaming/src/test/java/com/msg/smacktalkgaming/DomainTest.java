@@ -12,9 +12,11 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -40,7 +42,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.msg.smacktalkgaming.MyNeo4jTestConfiguration;
 import com.msg.smacktalkgaming.backend.domain.*;
 import com.msg.smacktalkgaming.backend.domain.Player.SecurityRole;
+import com.msg.smacktalkgaming.backend.domain.Record.enumContestResults;
 import com.msg.smacktalkgaming.backend.repos.*;
+import com.msg.smacktalkgaming.backend.services.EventService;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = MyNeo4jTestConfiguration.class)
@@ -57,9 +61,20 @@ public class DomainTest {
 
 	@Autowired
 	private EventRepository eventRepository;
+	@Autowired
+	private EventService eventService;
+
+	@Autowired
+	private LocationRepository locationRepository;
+
+	@Autowired
+	private RecordRepository recordRepository;
 
 	@Autowired
 	private PlayerRepository playerRepository;
+
+	@Autowired
+	private Glicko2Repository glicko2Repository;
 	/*
 	 * Event savedevent;
 	 * 
@@ -97,11 +112,318 @@ public class DomainTest {
 
 	}
 
-	/**
-	 * Test of findByTitle method, of class MovieRepository.
-	 */
+	@Test
+	public void addLocations() {
+
+		Random randomGenerator = new Random();
+
+		ArrayList<String> randomlocs = new ArrayList<String>();
+
+		randomlocs.add("1 N. Sheffield Ave. Danville VA ");
+		randomlocs.add("9 W. Valley Street Fitchburg, MA ");
+		randomlocs.add("21 Riverview Dr. Freeport, NY ");
+		randomlocs.add("41 George Street District Heights, MD ");
+		randomlocs.add("7255 North Second St. Temple Hills, MD ");
+		randomlocs.add("8108 Manor Lane Banning, CA 92220");
+
+		Location loc = new Location();
+		int index = randomGenerator.nextInt(randomlocs.size() - 1);
+		loc.setLocation(randomlocs.get(index));
+
+	}
+
+	@Test
+	public void updateRatingsFromMultipleEvents() {
+
+		HashMap testset = updateRatingsFromEvent();
+
+		// HashMap testset2 = updateRatingsFromEvent();
+
+		// Event event = createUniqueEvent();
+		// String eventUUID = event.getUUID();
+
+	}
+
+	private HashMap<String, String> updateRatingsFromEvent() {
+
+		HashMap<String, String> retVal = new HashMap<String, String>();
+
+		// 4 players
+		// 1 game
+		// WON, LOST, LOST, LOST scenario
+		// Event
+		Player player1 = createUniquePlayer();
+		String player1UUID = player1.getUUID();
+
+		Player player2 = createUniquePlayer();
+		String player2UUID = player2.getUUID();
+
+		Player player3 = createUniquePlayer();
+		String player3UUID = player3.getUUID();
+
+		Player player4 = createUniquePlayer();
+		String player4UUID = player4.getUUID();
+
+		Event event = createUniqueEvent();
+		String eventUUID = event.getUUID();
+
+		Record playedin1 = new Record();
+		playedin1.setPlayer(player1);
+		playedin1.setPlace(1);
+		playedin1.setResult(enumContestResults.WON);
+		playedin1.setEvent(event);
+		String playedin1UUID = playedin1.getUUID();
+
+		Record playedin2 = new Record();
+		playedin2.setPlayer(player2);
+		playedin2.setPlace(2);
+		playedin2.setResult(enumContestResults.LOST);
+		playedin2.setEvent(event);
+		String playedin2UUID = playedin2.getUUID();
+
+		Record playedin3 = new Record();
+		playedin3.setPlayer(player3);
+		playedin3.setPlace(3);
+		playedin3.setResult(enumContestResults.LOST);
+		playedin3.setEvent(event);
+		String playedin3UUID = playedin3.getUUID();
+
+		Record playedin4 = new Record();
+		playedin4.setPlayer(player4);
+		playedin4.setPlace(4);
+		playedin4.setResult(enumContestResults.LOST);
+		playedin4.setEvent(event);
+		String playedin4UUID = playedin4.getUUID();
+
+		playerRepository.save(player1);
+		recordRepository.save(playedin1);
+
+		playerRepository.save(player2);
+		recordRepository.save(playedin2);
+
+		playerRepository.save(player3);
+		recordRepository.save(playedin3);
+
+		playerRepository.save(player4);
+		recordRepository.save(playedin4);
+
+		eventRepository.save(event);
+
+		eventService.setRatingFromEvent(event, player1);
+
+		eventService.setRatingFromEvent(event, player2);
+
+		eventService.setRatingFromEvent(event, player3);
+
+		eventService.setRatingFromEvent(event, player4);
+
+		eventService.UpdateRatingsFromEvent(event);
+
+		// first place
+		assertEquals(1799.62, playerRepository.findGlicko2CurrentRating(player1UUID).getRating(), 0.01);
+		assertEquals(227.73, playerRepository.findGlicko2CurrentRating(player1UUID).getRatingdeviation(), 0.01);
+		assertEquals(0.060001, playerRepository.findGlicko2CurrentRating(player1UUID).getVolatility(), 0.01);
+
+		// sceond place
+		assertEquals(1599.87, playerRepository.findGlicko2CurrentRating(player2UUID).getRating(), 0.01);
+		assertEquals(227.73, playerRepository.findGlicko2CurrentRating(player2UUID).getRatingdeviation(), 0.01);
+		assertEquals(0.059998, playerRepository.findGlicko2CurrentRating(player2UUID).getVolatility(), 0.01);
+
+		// third place
+		assertEquals(1400.12, playerRepository.findGlicko2CurrentRating(player3UUID).getRating(), 0.01);
+		assertEquals(227.73, playerRepository.findGlicko2CurrentRating(player3UUID).getRatingdeviation(), 0.01);
+		assertEquals(0.059998, playerRepository.findGlicko2CurrentRating(player3UUID).getVolatility(), 0.01);
+
+		// last place
+		assertEquals(1200.37, playerRepository.findGlicko2CurrentRating(player4UUID).getRating(), 0.01);
+		assertEquals(227.73, playerRepository.findGlicko2CurrentRating(player4UUID).getRatingdeviation(), 0.01);
+		assertEquals(0.060001, playerRepository.findGlicko2CurrentRating(player4UUID).getVolatility(), 0.01);
+
+		retVal.put("player1", player1UUID);
+		retVal.put("player2", player2UUID);
+		retVal.put("player3", player3UUID);
+		retVal.put("player4", player4UUID);
+		retVal.put("event1", eventUUID);
+
+		return retVal;
+	}
+
+	@Test
+	public void shouldBeAbleToConnectEventToGame() {
+
+	}
+
+	@Test
+	public void addMultiplePlayedInsFromOnePlayer() {
+
+		Player player1 = createUniquePlayer();
+		String player1UUID = player1.getUUID();
+
+		Player player2 = createUniquePlayer();
+		String player2UUID = player2.getUUID();
+
+		Player player3 = createUniquePlayer();
+		String player3UUID = player3.getUUID();
+
+		Event event = createUniqueEvent();
+		String eventUUID = event.getUUID();
+
+		Event event2 = createUniqueEvent();
+		String event2UUID = event.getUUID();
+
+		playerRepository.save(player1);
+		playerRepository.save(player2);
+		playerRepository.save(player3);
+
+		eventRepository.save(event);
+		eventRepository.save(event2);
+
+		Record playedin1 = new Record();
+		playedin1.setPlayer(player1);
+		playedin1.setPlace(1);
+		playedin1.setResult(enumContestResults.WON);
+		playedin1.setEvent(event);
+		String playedin1UUID = playedin1.getUUID();
+
+		Record playedin2 = new Record();
+		playedin2.setPlayer(player2);
+		playedin2.setPlace(2);
+		playedin2.setResult(enumContestResults.LOST);
+		playedin2.setEvent(event);
+		String playedin2UUID = playedin2.getUUID();
+
+		Record playedin3 = new Record();
+		playedin3.setPlayer(player3);
+		playedin3.setPlace(3);
+		playedin3.setResult(enumContestResults.LOST);
+		playedin3.setEvent(event);
+		String playedin3UUID = playedin3.getUUID();
+
+		List<Record> records = new ArrayList();
+		records.add(playedin1);
+		records.add(playedin2);
+		records.add(playedin3);
+
+		event.setRecords(records);
+
+		eventRepository.save(event);
+
+		// SECOND EVENT
+		Record playedin1Event2 = new Record();
+		playedin1Event2.setPlayer(player1);
+		playedin1Event2.setPlace(2);
+		playedin1Event2.setResult(enumContestResults.LOST);
+		playedin1Event2.setEvent(event2);
+
+		Record playedin3Event2 = new Record();
+		playedin3Event2.setPlayer(player3);
+		playedin3Event2.setPlace(1);
+		playedin3Event2.setResult(enumContestResults.WON);
+		playedin3Event2.setEvent(event2);
+
+		records = new ArrayList();
+		records.add(playedin1Event2);
+		records.add(playedin3Event2);
+
+		event2.setRecords(records);
+
+		eventRepository.save(event2);
+
+		Collection<Record> records1 = eventRepository.fromEventGetPlayersRecords(eventUUID);
+		Collection<Record> records2 = eventRepository.fromEventGetPlayersRecords(event2UUID);
+
+	}
+
+	@Test
+	public void shouldBeAbleToConnectEventToLocation() {
+
+	}
+
+	@Test
+	public void shouldBeAbleToConnectNewPlayerToNewEvent() {
+
+		Player player1 = createUniquePlayer();
+		String player1UUID = player1.getUUID();
+
+		Event event1 = createUniqueEvent();
+		String event1UUID = event1.getUUID();
+
+		Record playedin = new Record();
+		playedin.setPlayer(player1);
+		playedin.setPlace(3);
+		playedin.setResult(enumContestResults.WON);
+		playedin.setEvent(event1);
+		String playedinUUID = playedin.getUUID();
+
+		playerRepository.save(player1);
+		eventRepository.save(event1);
+		recordRepository.save(playedin);
+
+		eventService.setRatingFromEvent(event1, player1);
+
+		Record foundplayedin = recordRepository.findByUUID(playedinUUID);
+		System.out.println("VLAUED:" + foundplayedin.getResult() + "*");
+
+		// TODO: assert values and delete everything
+
+	}
+
+	private Player createUniquePlayer() {
+		Player player = new Player();
+		ZonedDateTime snapshot = ZonedDateTime.now(ZoneOffset.UTC);
+		String playerName = "PLAYER " + snapshot.toString();
+
+		player.setFirstname(playerName);
+		player.setSurname("SURNAME:" + snapshot.toString());
+		player.setNickname("NICK:" + snapshot.toString());
+		// player.setCurrentevent("NICK");
+		// player.setBirthdate("11/11/2000");
+		// player.setBirthdate(new GregorianCalendar(1995, Calendar.FEBRUARY,
+		// 11).getTime());
+		player.setBirthdate(Date.from(birthdayTime.toInstant()));
+		player.setAlignment("LAWFUL GOOD");
+		player.setLogin("thebogie@live.com");
+		player.setPassword("fish");
+		player.setInfo("fish2");
+		player.setRole(SecurityRole.ROLE_USER, SecurityRole.ROLE_ADMIN);
+
+		return player;
+
+	}
+
+	private Event createUniqueEvent() {
+		Event event = new Event();
+		ZonedDateTime snapshot = ZonedDateTime.now(ZoneOffset.UTC);
+		ZonedDateTime twohrslater = snapshot.plusHours(2);
+		String eventName = "Event " + snapshot.toString();
+
+		event.setStart(Date.from(snapshot.toInstant()));
+		event.setStop(Date.from(twohrslater.toInstant()));
+
+		return event;
+
+	}
+
 	@Test
 	public void shouldBeAbleToAddAllAndDeleteDomainObjs() {
+
+		/**** LOCATION ****/
+		Location location = new Location();
+		location.setLocation("2613 W 10th, Austin, TX 78703");
+		location.setLatitude(24.0304903);
+		location.setLongitude(-38.304903);
+		locationRepository.save(location);
+
+		Location locationFound = locationRepository.findByLocation("2613 W 10th, Austin, TX 78703");
+
+		System.out.println("UUID:" + locationFound.getUUID());
+		assertEquals(24.0304903, locationFound.getLatitude(), 1e-15);
+		assertEquals(-38.304903, locationFound.getLongitude(), 1e-15);
+
+		locationRepository.delete(locationFound);
+
+		locationFound = locationRepository.findByLocation("2613 W 10th, Austin, TX 78703");
+		assertEquals(null, locationFound);
 
 		/**** PLAYER ****/
 		/* TODO: TEST EMPTY ARRAY OF ROLES */
@@ -125,7 +447,7 @@ public class DomainTest {
 		Collection<Player> foundplayers;
 
 		// FIND BY login and password
-		foundplayers = playerRepository.findByLoginLikeIgnoreCase("thebogie@live.com");
+		foundplayers = playerRepository.findByLogin("thebogie@live.com");
 
 		String playerUUID = null;
 		boolean passwordMatch = false;
@@ -170,8 +492,8 @@ public class DomainTest {
 
 		/**** EVENT ****/
 		Event event = new Event();
-		event.setStart(utcNow.toString());
-		event.setStop(utcTwoHoursFromNow.toString());
+		event.setStart(Date.from(utcNow.toInstant()));
+		event.setStart(Date.from(utcTwoHoursFromNow.toInstant()));
 
 		String eventUUID = event.getUUID();
 		String eventName = event.getEventname();

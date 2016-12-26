@@ -29,6 +29,17 @@ public class Event {
 	@GraphId
 	Long id;
 
+	@Relationship(type = "PLAYED_IN", direction = Relationship.INCOMING)
+	private List<Record> records;
+
+	public Collection<Record> getRecords() {
+		return this.records;
+	}
+
+	public void setRecords(List<Record> records) {
+		this.records = records;
+	}
+
 	@Property(name = "uuid")
 	private String uuid;
 
@@ -36,31 +47,30 @@ public class Event {
 	private String eventname;
 
 	@Property(name = "start")
-	private String start;
+	private Date start;
 
 	@Property(name = "stop")
-	private String stop;
+	private Date stop;
 
-	@Relationship(type = "PLAYED_IN", direction = Relationship.INCOMING)
-	Set<Record> results = new HashSet<>();
+	@Relationship(type = "PLAYED_AT", direction = Relationship.OUTGOING)
+	private Location location;
 
-	@Relationship(type = "PLAYED_IN", direction = Relationship.INCOMING)
-	public Collection<Record> getResults() {
-		return results;
+	public Location getLocation() {
+		return this.location;
 	}
 
-	public void addResult(Record result) {
-		results.add(result);
+	public void setLocation(Location location) {
+		this.location = location;
 	}
 
 	@Relationship(type = "PLAYED_WITH", direction = Relationship.OUTGOING)
-	private Set<Game> games;
+	private List<Game> games;
 
-	public Set<Game> getGames() {
+	public Collection<Game> getGames() {
 		return games;
 	}
 
-	public void setGames(Set<Game> games) {
+	public void setGames(List<Game> games) {
 		this.games = games;
 	}
 
@@ -89,11 +99,16 @@ public class Event {
 		return eventname;
 	}
 
-	public String getStart() {
+	// override automatic eventname dont use often
+	public void setEventname(String eventname) {
+		this.eventname = eventname;
+	}
+
+	public Date getStart() {
 		return start;
 	}
 
-	public String getStop() {
+	public Date getStop() {
 		return stop;
 	}
 
@@ -102,11 +117,11 @@ public class Event {
 		this.uuid = uuid;
 	}
 
-	public void setStart(String start) {
+	public void setStart(Date start) {
 		this.start = start;
 	}
 
-	public void setStop(String stop) {
+	public void setStop(Date stop) {
 		this.stop = stop;
 	}
 

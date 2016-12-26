@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 
 import org.springframework.stereotype.Repository;
 
+import com.msg.smacktalkgaming.backend.domain.Event;
 import com.msg.smacktalkgaming.backend.domain.Record;
 
 import java.util.Collection;
@@ -20,7 +21,8 @@ import java.util.Map;
 @Repository
 // @RepositoryRestResource(collectionResourceRel = "records", path = "records")
 public interface RecordRepository extends GraphRepository<Record> {
-
+	@Query("MATCH (e)-[r]->(m) WHERE r.uuid = {uuid} RETURN r")
+	Record findByUUID(@Param("uuid") String uuid);
 }
 
 // end::repository[]

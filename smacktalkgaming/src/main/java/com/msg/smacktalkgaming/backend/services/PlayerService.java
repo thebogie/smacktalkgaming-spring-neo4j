@@ -8,6 +8,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ public class PlayerService {
 	@Autowired
 	PlayerRepository pRepo;
 
+	// @Autowired
 	AuthenticationManager authenticationManager;
 
 	public Authentication authenticatePlayer(String login, String password) {
@@ -31,22 +33,38 @@ public class PlayerService {
 
 			// TODO: FIX PLAYER FINDING BY LOGIN NAME
 			// is the player in the system?
-			Player player = null;
-			// pRepo.findByLoginLikeIgnoreCase(login);
+			Collection<Player> players = pRepo.findByLogin(login);
 
-			if (player == null) {
+			if (players == null) {
 				throw new BadCredentialsException("1000");
+			}
+
+			// TODO: first login with password??
+			boolean foundMatch = false;
+			for (Player player : players) {
+				if (player.comparePassword(password)) {
+					Collection<GrantedAuthority> ga = Collections.emptyList();
+					Player.SecurityRole[] roles = player.getRoles();
+					if (roles != null) {
+						ga = Arrays.<GrantedAuthority>asList(roles);
+					}
+
+					token = new UsernamePasswordAuthenticationToken(login, password, ga);
+					foundMatch = true;
+					break;
+
+				}
 			}
 			/*
 			 * if (player.isDisabled()) { throw new DisabledException("1001"); }
 			 */
-
-			if (player.comparePassword(password)) {
+			if (!foundMatch) {
 				throw new BadCredentialsException("1000");
 			}
-			token = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(login, password));
 
-		} catch (AuthenticationException ex) {
+		} catch (
+
+		AuthenticationException ex) {
 			System.out.println("ERROR: " + ex.toString());
 			// ERROR
 		}

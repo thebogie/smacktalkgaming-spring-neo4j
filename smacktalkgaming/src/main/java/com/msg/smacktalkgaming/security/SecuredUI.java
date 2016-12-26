@@ -13,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.vaadin.spring.events.EventBus;
+import org.vaadin.viritin.label.RichText;
+import org.vaadin.viritin.layouts.MVerticalLayout;
 
 import com.msg.smacktalkgaming.backend.repos.PlayerRepository;
 import com.msg.smacktalkgaming.backend.services.PlayerService;
@@ -22,6 +24,8 @@ import com.msg.smacktalkgaming.vaadin.Greeter;
 import com.msg.smacktalkgaming.vaadin.PlayerForm;
 import com.msg.smacktalkgaming.vaadin.ViewScopedView;
 import com.vaadin.annotations.Theme;
+import com.vaadin.annotations.Title;
+import com.vaadin.annotations.Widgetset;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewDisplay;
@@ -42,6 +46,8 @@ import com.vaadin.ui.themes.ValoTheme;
 // No @Push annotation, we are going to enable it programmatically when the user
 // logs on
 @Theme(ValoTheme.THEME_NAME) // Looks nicer
+// @Widgetset("com.vaadin.demo.parking.widgetset.ParkingWidgetset")
+@Title("Smacktalk Gaming - throw scores at your friends")
 @SpringUI
 // @SpringViewDisplay
 public class SecuredUI extends UI {
@@ -103,16 +109,16 @@ public class SecuredUI extends UI {
 		layout.addComponent(buttons);
 
 		buttons.addComponent(new Button("Invoke user method", event -> {
-			// This method should be accessible by both 'user' and 'admin'.
-			// Notification.show(backendService.userMethod());
-			getNavigator().navigateTo("TEST");
+			// Thismethod should be accessible by both 'user' and 'admin'. //
+			Notification.show(backendService.userMethod());
+			getNavigator().navigateTo("user");
 		}));
 		buttons.addComponent(new Button("Navigate to user view", event -> {
 			getNavigator().navigateTo("");
 		}));
 		buttons.addComponent(new Button("Invoke admin method", event -> {
 			// This method should be accessible by 'admin' only.
-			Notification.show(pService.getAllPlayersNames());
+			Notification.show(backendService.adminMethod());
 		}));
 		buttons.addComponent(new Button("Navigate to admin view", event -> {
 			getNavigator().navigateTo("admin");
