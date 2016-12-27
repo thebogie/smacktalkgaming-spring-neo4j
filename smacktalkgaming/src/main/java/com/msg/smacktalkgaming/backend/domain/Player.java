@@ -23,8 +23,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @NodeEntity(label = "player")
 public class Player {
 
-	@Relationship(type = "CURRENT_RATING", direction = Relationship.OUTGOING)
-	Glicko2 currentrating = new Glicko2();
+	@Relationship(type = "PLAYED_IN", direction = Relationship.OUTGOING)
+	private Collection<Record> records;
+
+	public Collection<Record> getRecords() {
+		return this.records;
+	}
+
+	public void setRecords(Collection<Record> records) {
+		this.records = records;
+	}
+
+	//@Relationship(type = "CURRENT_RATING", direction = Relationship.OUTGOING)
+	private Glicko2 currentrating;
 
 	public Glicko2 getCurrentrating() {
 		return currentrating;
@@ -34,8 +45,23 @@ public class Player {
 		this.currentrating = rating;
 	}
 
+	@Relationship(type = "WAS_RATED", direction = Relationship.OUTGOING)
+	private Collection<Glicko2> wasrated;
+
+	public Collection<Glicko2> getWasRated() {
+		return this.wasrated;
+	}
+
+	public void setWasRated(Collection<Glicko2> listwasrated) {
+		this.wasrated = listwasrated;
+	}
+
 	@GraphId
-	Long id;
+	private Long id;
+
+	public Long getID() {
+		return this.id;
+	}
 
 	@Property(name = "uuid")
 	private String uuid;

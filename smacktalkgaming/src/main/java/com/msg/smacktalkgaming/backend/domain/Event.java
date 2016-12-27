@@ -27,18 +27,9 @@ public class Event {
 	public static final String ISO_8601_24H_STG_FORMAT = "yyyy-MM-dd'T'HH:mmXXX";
 
 	@GraphId
-	Long id;
+	private Long id;
 
-	@Relationship(type = "PLAYED_IN", direction = Relationship.INCOMING)
-	private List<Record> records;
-
-	public Collection<Record> getRecords() {
-		return this.records;
-	}
-
-	public void setRecords(List<Record> records) {
-		this.records = records;
-	}
+	
 
 	@Property(name = "uuid")
 	private String uuid;

@@ -45,6 +45,7 @@ import com.msg.smacktalkgaming.backend.domain.Player.SecurityRole;
 import com.msg.smacktalkgaming.backend.domain.Record.enumContestResults;
 import com.msg.smacktalkgaming.backend.repos.*;
 import com.msg.smacktalkgaming.backend.services.EventService;
+import com.msg.smacktalkgaming.backend.services.PlayerService;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = MyNeo4jTestConfiguration.class)
@@ -72,6 +73,8 @@ public class DomainTest {
 
 	@Autowired
 	private PlayerRepository playerRepository;
+	@Autowired
+	private PlayerService playerService;
 
 	@Autowired
 	private Glicko2Repository glicko2Repository;
@@ -209,15 +212,15 @@ public class DomainTest {
 
 		eventRepository.save(event);
 
-		eventService.setRatingFromEvent(event, player1);
+		// eventService.setRatingFromEvent(event, player1);
 
-		eventService.setRatingFromEvent(event, player2);
+		// eventService.setRatingFromEvent(event, player2);
 
-		eventService.setRatingFromEvent(event, player3);
+		// eventService.setRatingFromEvent(event, player3);
 
-		eventService.setRatingFromEvent(event, player4);
+		// eventService.setRatingFromEvent(event, player4);
 
-		eventService.UpdateRatingsFromEvent(event);
+		eventService.UpdateRatingsFromEvent(event.getUUID());
 
 		// first place
 		assertEquals(1799.62, playerRepository.findGlicko2CurrentRating(player1UUID).getRating(), 0.01);
@@ -284,6 +287,7 @@ public class DomainTest {
 		playedin1.setResult(enumContestResults.WON);
 		playedin1.setEvent(event);
 		String playedin1UUID = playedin1.getUUID();
+		playerService.addNewPlayedIn(player1, playedin1);
 
 		Record playedin2 = new Record();
 		playedin2.setPlayer(player2);
@@ -291,6 +295,7 @@ public class DomainTest {
 		playedin2.setResult(enumContestResults.LOST);
 		playedin2.setEvent(event);
 		String playedin2UUID = playedin2.getUUID();
+		playerService.addNewPlayedIn(player2, playedin2);
 
 		Record playedin3 = new Record();
 		playedin3.setPlayer(player3);
@@ -298,13 +303,7 @@ public class DomainTest {
 		playedin3.setResult(enumContestResults.LOST);
 		playedin3.setEvent(event);
 		String playedin3UUID = playedin3.getUUID();
-
-		List<Record> records = new ArrayList();
-		records.add(playedin1);
-		records.add(playedin2);
-		records.add(playedin3);
-
-		event.setRecords(records);
+		playerService.addNewPlayedIn(player3, playedin3);
 
 		eventRepository.save(event);
 
@@ -314,18 +313,14 @@ public class DomainTest {
 		playedin1Event2.setPlace(2);
 		playedin1Event2.setResult(enumContestResults.LOST);
 		playedin1Event2.setEvent(event2);
+		playerService.addNewPlayedIn(player1, playedin1Event2);
 
 		Record playedin3Event2 = new Record();
 		playedin3Event2.setPlayer(player3);
 		playedin3Event2.setPlace(1);
 		playedin3Event2.setResult(enumContestResults.WON);
 		playedin3Event2.setEvent(event2);
-
-		records = new ArrayList();
-		records.add(playedin1Event2);
-		records.add(playedin3Event2);
-
-		event2.setRecords(records);
+		playerService.addNewPlayedIn(player2, playedin3Event2);
 
 		eventRepository.save(event2);
 
@@ -359,7 +354,7 @@ public class DomainTest {
 		eventRepository.save(event1);
 		recordRepository.save(playedin);
 
-		eventService.setRatingFromEvent(event1, player1);
+		// eventService.setRatingFromEvent(event1, player1);
 
 		Record foundplayedin = recordRepository.findByUUID(playedinUUID);
 		System.out.println("VLAUED:" + foundplayedin.getResult() + "*");

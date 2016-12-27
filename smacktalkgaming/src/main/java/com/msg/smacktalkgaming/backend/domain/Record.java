@@ -15,7 +15,7 @@ import com.voodoodyne.jackson.jsog.JSOGGenerator;
 public class Record {
 
 	@GraphId
-	Long id;
+	private Long id;
 
 	// @Convert(RecordConverter.class)
 	@Property(name = "result")

@@ -25,6 +25,14 @@ public interface PlayerRepository extends GraphRepository<Player> {
 	// return r")
 	Record getRecordForPlayerFromEvent(@Param("eventuuid") String eventuuid, @Param("playeruuid") String playeruuid);
 
+	// find all records (for a count of total plays or number of places/results
+	@Query("match (p:player {uuid:{playeruuid}})-[r:PLAYED_IN]-(e) return r")
+	Collection<Record> getAllRecordForPlayer(@Param("playeruuid") String playeruuid);
+
+	// find all glicko2 records
+	@Query("match (p:player {uuid:{playeruuid}})-[r:WAS_RATED]-(g) return r")
+	Collection<Glicko2> getAllGlicko2ForPlayer(@Param("playeruuid") String playeruuid);
+
 	@Query("MATCH (p:player) WHERE p.uuid = {uuid} RETURN p")
 	Player findByUUID(@Param("uuid") String uuid);
 
