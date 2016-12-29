@@ -21,6 +21,10 @@ public interface EventRepository extends GraphRepository<Event> {
 	Event findOne(Long id);
 
 	// find the place and result for a player for an event
+	@Query("match (e:event ) return e")
+	Collection<Event> getAllEvents();
+
+	// find the place and result for a player for an event
 	@Query("match (p:player )-[r:PLAYED_IN]->(e:event {uuid:{eventuuid}}) return r")
 	Collection<Record> fromEventGetPlayersRecords(@Param("eventuuid") String eventuuid);
 

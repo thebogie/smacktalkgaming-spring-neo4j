@@ -43,7 +43,7 @@ public class MyNeo4jConfiguration extends Neo4jConfiguration {
 
 	@Override
 	public SessionFactory getSessionFactory() {
-		return new SessionFactory(getConfiguration(), "com.msg.smacktalkgaming.backend.domain");
+		return new SessionFactory(getConfiguration(), "com.msg.smacktalkgaming.backend");
 	}
 
 }

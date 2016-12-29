@@ -21,7 +21,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableGlobalMethodSecurity(securedEnabled = false)
 public class MyNeo4jTestConfiguration extends Neo4jConfiguration {
 
-	//to see embedded: bin\neo4j-shell.bat -path "C:\_smacktalk\embedded\graph.db\"
+	// to see embedded: bin\neo4j-shell.bat -path
+	// "C:\_smacktalk\embedded\graph.db\"
 	@Bean
 	public org.neo4j.ogm.config.Configuration getConfiguration() {
 		org.neo4j.ogm.config.Configuration config = new org.neo4j.ogm.config.Configuration();
@@ -34,6 +35,6 @@ public class MyNeo4jTestConfiguration extends Neo4jConfiguration {
 
 	@Override
 	public SessionFactory getSessionFactory() {
-		return new SessionFactory(getConfiguration(), "com.msg.smacktalkgaming.backend.domain");
+		return new SessionFactory(getConfiguration(), "com.msg.smacktalkgaming.backend");
 	}
 }

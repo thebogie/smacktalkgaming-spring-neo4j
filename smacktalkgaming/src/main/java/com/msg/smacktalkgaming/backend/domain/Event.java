@@ -29,7 +29,16 @@ public class Event {
 	@GraphId
 	private Long id;
 
-	
+	@Property(name = "eventrated")
+	private Boolean eventrated;
+
+	public Boolean getEventrated() {
+		return eventrated;
+	}
+
+	public void setEventrated(Boolean eventrated) {
+		this.eventrated = eventrated;
+	}
 
 	@Property(name = "uuid")
 	private String uuid;
