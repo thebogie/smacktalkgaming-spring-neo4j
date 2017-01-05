@@ -17,7 +17,9 @@ import com.msg.smacktalkgaming.backend.domain.Event;
 import com.msg.smacktalkgaming.backend.domain.Glicko2;
 import com.msg.smacktalkgaming.backend.domain.Player;
 import com.msg.smacktalkgaming.backend.domain.Record;
+import com.msg.smacktalkgaming.backend.repos.Glicko2Repository;
 import com.msg.smacktalkgaming.backend.repos.PlayerRepository;
+import com.msg.smacktalkgaming.backend.repos.RecordRepository;
 
 import java.util.*;
 
@@ -26,6 +28,12 @@ import java.util.*;
 public class PlayerService {
 	@Autowired
 	PlayerRepository pRepo;
+
+	@Autowired
+	RecordRepository rRepo;
+
+	@Autowired
+	Glicko2Repository gRepo;
 
 	// @Autowired
 	AuthenticationManager authenticationManager;
@@ -75,7 +83,8 @@ public class PlayerService {
 			player.setRecords(listwasrated);
 
 		}
-		// pRepo.save(player);
+		rRepo.save(record);
+		pRepo.save(player);
 
 	}
 
@@ -94,6 +103,7 @@ public class PlayerService {
 			player.setWasRated(listwasrated);
 
 		}
+		// gRepo.save(oldrating);
 		// pRepo.save(player);
 
 	}
@@ -154,28 +164,28 @@ public class PlayerService {
 		return "Hello from a user method";
 	}
 
-	public void moveCurrentRatingToNewRating(Event event, Player player) {
-
-		System.out.println("Move Current Rating to New Rating");
-
-		Glicko2 newglicko = new Glicko2();
-		Glicko2 oldglicko = player.getCurrentrating();
-
-		newglicko.setRating(oldglicko.getRating());
-		newglicko.setRatingdeviation(oldglicko.getRatingdeviation());
-		newglicko.setVolatility(oldglicko.getVolatility());
-		newglicko.setCreated(event.getStop());
-		newglicko.setEventRatingFrom(event);
-
-		player.setCurrentrating(newglicko);
-		pRepo.save(player);
-
-		// List<Glicko2> newglickoList = new ArrayList<Glicko2>();
-		// newglickoList.add(newglicko);
-
-		addNewWasRated(newglicko, player);
-
-		// return player;
-	}
+	/*
+	 * public void moveCurrentRatingToNewRating(Event event, Player player) {
+	 * 
+	 * System.out.println("Move Current Rating to New Rating");
+	 * 
+	 * Glicko2 newglicko = new Glicko2(); Glicko2 oldglicko =
+	 * player.getCurrentrating();
+	 * 
+	 * newglicko.setRating(oldglicko.getRating());
+	 * newglicko.setRatingdeviation(oldglicko.getRatingdeviation());
+	 * newglicko.setVolatility(oldglicko.getVolatility());
+	 * newglicko.setCreated(event.getStop());
+	 * newglicko.setEventRatingFrom(event);
+	 * 
+	 * player.setCurrentrating(newglicko); pRepo.save(player);
+	 * 
+	 * // List<Glicko2> newglickoList = new ArrayList<Glicko2>(); //
+	 * newglickoList.add(newglicko);
+	 * 
+	 * addNewWasRated(newglicko, player);
+	 * 
+	 * // return player; }
+	 */
 
 }

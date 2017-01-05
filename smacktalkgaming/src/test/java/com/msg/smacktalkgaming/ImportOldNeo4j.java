@@ -134,6 +134,7 @@ public class ImportOldNeo4j {
 						String eventstr = eventService.RecordEvent(c.event, c.game, c.location, c.players, c.records);
 						eventstoscore.add(eventstr);
 						eventService.UpdateRatingsFromEvent(eventstr);
+						
 					}
 
 					// reset the cargo box

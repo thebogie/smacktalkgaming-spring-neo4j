@@ -1,6 +1,7 @@
 package com.msg.smacktalkgaming.backend.services;
 
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -10,6 +11,7 @@ import java.util.Set;
 
 import org.neo4j.ogm.annotation.Property;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,7 @@ import com.msg.smacktalkgaming.backend.domain.Record.enumContestResults;
 import com.msg.smacktalkgaming.backend.domain.rating.Rating;
 import com.msg.smacktalkgaming.backend.domain.rating.RatingCalculator;
 import com.msg.smacktalkgaming.backend.domain.rating.RatingPeriodResults;
+import com.msg.smacktalkgaming.backend.entities.RecordResults;
 import com.msg.smacktalkgaming.backend.repos.EventRepository;
 import com.msg.smacktalkgaming.backend.repos.GameRepository;
 import com.msg.smacktalkgaming.backend.repos.Glicko2Repository;
@@ -87,7 +90,7 @@ public class EventService {
 			records.get(i).setPlayer(playertosave);
 			records.get(i).setEvent(event);
 
-			pService.addNewPlayedIn(playertosave, records.get(i));
+			playertosave.addNewPlayedIn(records.get(i));
 
 			pRepo.save(playertosave);
 			// players.set(i, playertosave);
@@ -105,6 +108,35 @@ public class EventService {
 		Event event = eRepo.findByUUID(eventuuid);
 		System.out.println("***************UPDATING EVENT:" + event.getEventname());
 		Collection<String> playersuuid = eRepo.getPlayersUUIDInEvent(event.getUUID());
+		Collection<RecordResults> records = eRepo.fromEventGetPlayersRecords(event.getUUID());
+
+		class Cargo {
+			String playeruuid;
+			enumContestResults result;
+			int place;
+			Rating rating;
+			boolean alreadyscored = false;
+
+			public Iterator iterator() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+		}
+		ArrayList<Cargo> cargo = new ArrayList<Cargo>();
+
+		for (String playeruuid : playersuuid) {
+			Player player = pRepo.findByUUID(playeruuid);
+
+			Cargo c = new Cargo();
+			c.playeruuid = playeruuid;
+
+			/*
+			 * for (Record r : records) { if
+			 * (r.getPlayer().getUUID().equals(playeruuid)) { c.result =
+			 * r.getResult(); c.place = r.getPlace(); } }
+			 */
+
+		}
 
 		for (String playeruuid : playersuuid) {
 
@@ -121,12 +153,20 @@ public class EventService {
 
 			Glicko2 newglicko2 = new Glicko2();
 
-			newglicko2.setRating(0);
-			newglicko2.setRatingdeviation(0);
+			for (Cargo c : cargo) {
+				if (c.playeruuid.equals(playeruuid)) {
+					newglicko2.setRatingdeviation(c.place);
+
+				}
+			}
+
+			newglicko2.setRating(System.currentTimeMillis() % 100000);
+			// newglicko2.setRatingdeviation(0);
 			newglicko2.setVolatility(0);
 
-			pService.addNewWasRated(player.getCurrentrating(), player);
+			player.addWasRated(player.getCurrentrating());
 			player.setCurrentrating(newglicko2);
+			pRepo.save(player);
 
 			// System.out.println("AFTER Player Login:" + player.getLogin() + "
 			// UUID:" + player.getUUID());
@@ -140,28 +180,8 @@ public class EventService {
 			//
 			// pRepo.save(player);
 
-			pRepo.save(player);
+			// pRepo.save(player);
 
-		}
-
-		eRepo.save(event);
-
-		for (String playeruuid : playersuuid) {
-			Player player = pRepo.findByUUID(playeruuid);
-			Record record = pRepo.getRecordForPlayerFromEvent(eventuuid, playeruuid);
-			System.out.println("record: " + record.getPlace());
-			for (String compareuuid : playersuuid) {
-				Player compare = pRepo.findByUUID(compareuuid);
-				if (!player.getUUID().equals(compare.getUUID())) {
-					// compare records
-					Record comparerecord = pRepo.getRecordForPlayerFromEvent(eventuuid, compareuuid);
-
-					System.out.println("comparerecord: " + comparerecord.getPlace());
-				}
-
-			}
-			System.out.println("AFTER Player Login:" + player.getLogin() //
-					+ " GLICKO2 RATING:" + player.getCurrentrating().getRating());
 		}
 
 	}
@@ -176,7 +196,7 @@ public class EventService {
 		System.out.println("Update Ratings");
 
 		Collection<Player> players = eRepo.getPlayersInEvent(event.getUUID());
-		Collection<Record> records = eRepo.fromEventGetPlayersRecords(event.getUUID());
+		Collection<RecordResults> records = eRepo.fromEventGetPlayersRecords(event.getUUID());
 
 		RatingCalculator ratingSystem = new RatingCalculator();
 		RatingPeriodResults results = new RatingPeriodResults();

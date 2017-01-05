@@ -1,6 +1,7 @@
 package com.msg.smacktalkgaming.backend.repos;
 
 import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.repository.query.Param;
 
@@ -9,10 +10,12 @@ import org.springframework.stereotype.Repository;
 import com.msg.smacktalkgaming.backend.domain.Event;
 import com.msg.smacktalkgaming.backend.domain.Player;
 import com.msg.smacktalkgaming.backend.domain.Record;
+import com.msg.smacktalkgaming.backend.entities.RecordResults;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 // tag::repository[]
 // @RepositoryRestResource(collectionResourceRel = "events", path = "events")
@@ -25,8 +28,8 @@ public interface EventRepository extends GraphRepository<Event> {
 	Collection<Event> getAllEvents();
 
 	// find the place and result for a player for an event
-	@Query("match (p:player )-[r:PLAYED_IN]->(e:event {uuid:{eventuuid}}) return r")
-	Collection<Record> fromEventGetPlayersRecords(@Param("eventuuid") String eventuuid);
+	@Query("match (p:player )-[r:PLAYED_IN]->(e:event {uuid:{eventuuid}}) return r.place as place, p.uuid as playeruuid")
+	Collection<RecordResults> fromEventGetPlayersRecords(@Param("eventuuid") String eventuuid);
 
 	@Query("match (p:player {uuid:{playeruuid}} )-[r:PLAYED_IN]->(e:event {uuid:{eventuuid}}) return r")
 	Record fromEventGetAPlayerRecord(@Param("eventuuid") String eventuuid, @Param("playeruuid") String playeruuid);

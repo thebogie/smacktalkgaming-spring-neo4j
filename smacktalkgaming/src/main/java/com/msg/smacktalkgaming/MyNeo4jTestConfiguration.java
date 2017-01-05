@@ -14,7 +14,14 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @EnableTransactionManagement
 // @EnableAutoConfiguration
-@ComponentScan({ "com.msg.smacktalkgaming.backend" })
+// @ComponentScan({ "com.msg.smacktalkgaming.backend" })
+
+@ComponentScan(basePackages = { "com.msg.smacktalkgaming.backend.repos", //
+		"com.msg.smacktalkgaming.backend.domain", //
+		"com.msg.smacktalkgaming.backend.domain.rating", //
+		"com.msg.smacktalkgaming.backend.services",//
+})
+
 // @Configuration
 @EnableNeo4jRepositories({ "com.msg.smacktalkgaming.backend.repos" })
 @Profile({ "embedded", "test" })
@@ -27,7 +34,7 @@ public class MyNeo4jTestConfiguration extends Neo4jConfiguration {
 	public org.neo4j.ogm.config.Configuration getConfiguration() {
 		org.neo4j.ogm.config.Configuration config = new org.neo4j.ogm.config.Configuration();
 		config.driverConfiguration().setDriverClassName("org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver")
-				.setURI("file:/C:/_smacktalk/embedded/graph.db");
+				.setURI("file:/home/osboxes/workspace/embedded/graph.db");
 		// .setURI("file:/C:/tools/neo4j.304/data/databases/graph.db/");
 
 		return config;

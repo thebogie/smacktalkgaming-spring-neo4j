@@ -34,7 +34,21 @@ public class Player {
 		this.records = records;
 	}
 
-	//@Relationship(type = "CURRENT_RATING", direction = Relationship.OUTGOING)
+	public void addNewPlayedIn(Record record) {
+		ArrayList<Record> newlist = new ArrayList<Record>();
+		newlist.add(record);
+
+		if (this.records == null) {
+
+			this.records = newlist;
+
+		} else {
+			this.records.add(record);
+
+		}
+	}
+
+	// @Relationship(type = "CURRENT_RATING", direction = Relationship.OUTGOING)
 	private Glicko2 currentrating;
 
 	public Glicko2 getCurrentrating() {
@@ -54,6 +68,19 @@ public class Player {
 
 	public void setWasRated(Collection<Glicko2> listwasrated) {
 		this.wasrated = listwasrated;
+	}
+
+	public void addWasRated(Glicko2 oldrating) {
+		ArrayList<Glicko2> newlist = new ArrayList<Glicko2>();
+		newlist.add(oldrating);
+		if (this.wasrated == null) {
+
+			this.wasrated = newlist;
+
+		} else {
+			this.wasrated.add(oldrating);
+
+		}
 	}
 
 	@GraphId

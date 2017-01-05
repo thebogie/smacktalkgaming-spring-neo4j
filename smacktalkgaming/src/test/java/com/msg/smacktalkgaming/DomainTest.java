@@ -43,6 +43,7 @@ import com.msg.smacktalkgaming.MyNeo4jTestConfiguration;
 import com.msg.smacktalkgaming.backend.domain.*;
 import com.msg.smacktalkgaming.backend.domain.Player.SecurityRole;
 import com.msg.smacktalkgaming.backend.domain.Record.enumContestResults;
+import com.msg.smacktalkgaming.backend.entities.RecordResults;
 import com.msg.smacktalkgaming.backend.repos.*;
 import com.msg.smacktalkgaming.backend.services.EventService;
 import com.msg.smacktalkgaming.backend.services.PlayerService;
@@ -324,8 +325,8 @@ public class DomainTest {
 
 		eventRepository.save(event2);
 
-		Collection<Record> records1 = eventRepository.fromEventGetPlayersRecords(eventUUID);
-		Collection<Record> records2 = eventRepository.fromEventGetPlayersRecords(event2UUID);
+		Collection<RecordResults> records1 = eventRepository.fromEventGetPlayersRecords(eventUUID);
+		Collection<RecordResults> records2 = eventRepository.fromEventGetPlayersRecords(event2UUID);
 
 	}
 
