@@ -22,6 +22,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -57,22 +59,10 @@ public class ImportOldNeo4j {
 	ArrayList<String> eventstoscore = new ArrayList<String>();
 
 	@Autowired
-	private GameRepository gameRepository;
-
-	@Autowired
-	private EventRepository eventRepository;
-
-	@Autowired
 	private EventService eventService;
 
 	@Autowired
-	private LocationRepository locationRepository;
-
-	@Autowired
-	private RecordRepository recordRepository;
-
-	@Autowired
-	private PlayerRepository playerRepository;
+	EventRepository eRepo;
 
 	public ImportOldNeo4j() {
 
@@ -90,13 +80,30 @@ public class ImportOldNeo4j {
 
 	}
 
-	@Before
-	public void initialize() throws ParseException {
+	@Test
+	@DirtiesContext
+	public void testRatings() {
+
+		// Event event = eRepo.findByEventname("EVENT01");
+		// eventService.UpdateRatingsFromEvent(event.getUUID());
+
+		/*
+		 * Event event = eventRepository.findByEventname("EVENT01");
+		 * eventService.UpdateRatingsFromEvent(event);
+		 * 
+		 * Event event2 = eventRepository.findByEventname("EVENT02");
+		 * eventService.UpdateRatingsFromEvent(event2);
+		 * 
+		 * Event event3 = eventRepository.findByEventname("EVENT03");
+		 * eventService.UpdateRatingsFromEvent(event3);
+		 */
 
 	}
 
-	@Test
-	public void importTheJSON() {
+	@Before
+
+	public void initialize() throws ParseException {
+
 		ArrayList people = new ArrayList<Player>();
 		ArrayList games = new ArrayList<Game>();
 		ArrayList<Event> events = new ArrayList<Event>();
@@ -106,7 +113,7 @@ public class ImportOldNeo4j {
 		try {
 
 			Object obj = parser.parse(new FileReader(System.getProperty("user.dir") + //
-					"/src/main/resources/inputTEST.json"));
+					"/src/main/resources/input.json"));
 
 			// Object obj = parser
 			// .parse(new FileReader(System.getProperty("user.dir") +
@@ -128,13 +135,19 @@ public class ImportOldNeo4j {
 
 				if (!eventname.equals(rowList.get(0).toString())) {
 
+					if (rowList.get(0).toString().equals("BROKEN")) {
+						continue;
+					}
+
 					if (!eventname.equals("START")) {
 
 						// eventService.UpdateRatingsFromEvent(
-						String eventstr = eventService.RecordEvent(c.event, c.game, c.location, c.players, c.records);
-						eventstoscore.add(eventstr);
-						eventService.UpdateRatingsFromEvent(eventstr);
-						
+						eventService.RecordEvent(c.event, //
+								c.game, c.location, //
+								c.players, c.records);
+
+						// eventService.UpdateRatingsFromEvent(c.event);
+
 					}
 
 					// reset the cargo box
@@ -192,9 +205,6 @@ public class ImportOldNeo4j {
 					Game g = new Game();
 					g.setName(rowList.get(6).toString());
 					c.game = g;
-					List<Game> listofgames = new ArrayList<Game>();
-					listofgames.add(g);
-					event.setGames(listofgames);
 
 				}
 
@@ -203,7 +213,7 @@ public class ImportOldNeo4j {
 					Location l = new Location();
 					l.setLocation(rowList.get(7).toString());
 					c.location = l;
-					c.event.setLocation(l);
+					// c.event.setLocation(l);
 
 				}
 

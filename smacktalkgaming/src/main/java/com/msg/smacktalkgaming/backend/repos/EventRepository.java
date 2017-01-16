@@ -39,6 +39,9 @@ public interface EventRepository extends GraphRepository<Event> {
 
 	@Query("MATCH (e:event) WHERE e.uuid = {uuid} RETURN e")
 	Event findByUUID(@Param("uuid") String uuid);
+	
+	@Query("MATCH (e:event) WHERE e.uuid = {uuid} RETURN ID(e)")
+	Long findIDByUUID(@Param("uuid") String uuid);
 
 	@Query("MATCH (e:event)<-[r:PLAYED_IN]-(p:player) WHERE e.uuid = {uuid} return  count(r)")
 	int findNumberOfPlayers(@Param("uuid") String uuid);

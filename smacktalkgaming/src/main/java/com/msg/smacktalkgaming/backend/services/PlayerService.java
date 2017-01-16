@@ -1,6 +1,7 @@
 package com.msg.smacktalkgaming.backend.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,9 +18,11 @@ import com.msg.smacktalkgaming.backend.domain.Event;
 import com.msg.smacktalkgaming.backend.domain.Glicko2;
 import com.msg.smacktalkgaming.backend.domain.Player;
 import com.msg.smacktalkgaming.backend.domain.Record;
+import com.msg.smacktalkgaming.backend.domain.WasRated;
 import com.msg.smacktalkgaming.backend.repos.Glicko2Repository;
 import com.msg.smacktalkgaming.backend.repos.PlayerRepository;
 import com.msg.smacktalkgaming.backend.repos.RecordRepository;
+import com.msg.smacktalkgaming.backend.repos.WasRatedRepository;
 
 import java.util.*;
 
@@ -33,10 +36,25 @@ public class PlayerService {
 	RecordRepository rRepo;
 
 	@Autowired
+	WasRatedRepository wRepo;
+
+	@Autowired
 	Glicko2Repository gRepo;
 
 	// @Autowired
 	AuthenticationManager authenticationManager;
+
+	public void save(Player player) {
+		pRepo.save(player);
+	}
+
+	public void saveRecord(Record record) {
+		rRepo.save(record);
+	}
+
+	public void saveWasRated(WasRated wr) {
+		wRepo.save(wr);
+	}
 
 	public Player createOrFindPlayer(Player player) {
 
@@ -54,11 +72,17 @@ public class PlayerService {
 			startrating.setCreated(new Date());
 			retVal.setCurrentrating(startrating);
 
-			ArrayList<Glicko2> newlist = new ArrayList<Glicko2>();
-			newlist.add(startrating);
-			retVal.setWasRated(newlist);
+			WasRated wasrated = new WasRated();
+			wasrated.setPlayer(player);
+			wasrated.setGlicko2(startrating);
 
-			pRepo.save(retVal);
+			wRepo.save(wasrated);
+
+			// ArrayList<Glicko2> newlist = new ArrayList<Glicko2>();
+			// newlist.add(startrating);
+			// retVal.setWasRated(newlist);
+
+			// pRepo.save(retVal);
 
 		} else {
 			retVal = playersFound.iterator().next();
@@ -68,42 +92,13 @@ public class PlayerService {
 
 	}
 
-	public void addNewPlayedIn(Player player, Record record) {
-
-		ArrayList<Record> newlist = new ArrayList<Record>();
-		newlist.add(record);
-
-		Collection<Record> listwasrated = player.getRecords();
-		if (listwasrated == null) {
-
-			player.setRecords(newlist);
-
-		} else {
-			listwasrated.add(record);
-			player.setRecords(listwasrated);
-
-		}
-		rRepo.save(record);
-		pRepo.save(player);
+	public Glicko2 getCurrentRating(Player player) {
+		return player.getCurrentrating();
 
 	}
 
-	public void addNewWasRated(Glicko2 oldrating, Player player) {
-
-		ArrayList<Glicko2> newlist = new ArrayList<Glicko2>();
-		newlist.add(oldrating);
-
-		Collection<Glicko2> listwasrated = player.getWasRated();
-		if (listwasrated == null) {
-
-			player.setWasRated(newlist);
-
-		} else {
-			listwasrated.add(oldrating);
-			player.setWasRated(listwasrated);
-
-		}
-		// gRepo.save(oldrating);
+	public void setCurrentRating(Player player, Glicko2 glicko2) {
+		player.setCurrentrating(glicko2);
 		// pRepo.save(player);
 
 	}

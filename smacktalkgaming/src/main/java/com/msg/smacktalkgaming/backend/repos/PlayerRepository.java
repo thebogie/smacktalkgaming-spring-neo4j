@@ -17,6 +17,13 @@ import com.msg.smacktalkgaming.backend.domain.Record;
 //tag::repository[]
 @Repository
 public interface PlayerRepository extends GraphRepository<Player> {
+	
+	@Query("MATCH (p:player{uuid:{uuid}})-[r:PLAYED_IN]->(e) RETURN COUNT(r)")
+	int numberEventsPlayedIn(@Param("uuid") String uuid);
+	
+	
+	@Query("MATCH (p:player) WHERE p.uuid = {uuid} RETURN ID(p)")
+	Long findIDByUUID(@Param("uuid") String uuid);
 
 	// find the place and result for a player for an event
 	@Query("match (p:player {uuid:{playeruuid}})-[r:PLAYED_IN]->(e:event {uuid:{eventuuid}}) return r")

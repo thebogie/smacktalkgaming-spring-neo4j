@@ -15,7 +15,7 @@ import com.voodoodyne.jackson.jsog.JSOGGenerator;
 public class Game {
 
 	@GraphId
-	private Long graphId;
+	Long graphId;
 
 	@Property(name = "uuid")
 	private String uuid;

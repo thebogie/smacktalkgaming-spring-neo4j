@@ -22,7 +22,7 @@ public class Glicko2 {
 	private final static double DEFAULT_DEVIATION = 350;
 	private final static double DEFAULT_VOLATILITY = 0.06;
 
-	@Relationship(type = "RATING_FROM", direction = Relationship.OUTGOING)
+	@Relationship(type = "RATING_FROM")
 	private Event rating_from;
 
 	public Event getEventRatingFrom() {
@@ -34,7 +34,7 @@ public class Glicko2 {
 	}
 
 	@GraphId
-	private Long id;
+	Long id;
 
 	@Property(name = "uuid")
 	private String uuid;

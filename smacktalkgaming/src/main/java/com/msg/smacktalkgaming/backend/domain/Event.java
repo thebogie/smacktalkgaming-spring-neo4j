@@ -27,7 +27,7 @@ public class Event {
 	public static final String ISO_8601_24H_STG_FORMAT = "yyyy-MM-dd'T'HH:mmXXX";
 
 	@GraphId
-	private Long id;
+	Long id;
 
 	@Property(name = "eventrated")
 	private Boolean eventrated;
@@ -52,7 +52,7 @@ public class Event {
 	@Property(name = "stop")
 	private Date stop;
 
-	@Relationship(type = "PLAYED_AT", direction = Relationship.OUTGOING)
+	@Relationship(type = "PLAYED_AT")
 	private Location location;
 
 	public Location getLocation() {
@@ -63,30 +63,20 @@ public class Event {
 		this.location = location;
 	}
 
-	@Relationship(type = "PLAYED_WITH", direction = Relationship.OUTGOING)
-	private List<Game> games;
+	@Relationship(type = "PLAYED_WITH")
+	private Set<Game> playedwith;
 
-	public Collection<Game> getGames() {
-		return games;
+	public Set<Game> getPlayedWith() {
+		return this.playedwith;
 	}
 
-	public void setGames(List<Game> games) {
-		this.games = games;
+	public void setPlayedWith(Set<Game> playedwith) {
+		this.playedwith = playedwith;
 	}
-
-	// @Relationship(type = "PLAYED_IN", direction = Relationship.INCOMING)
-	// private Result result;
-
-	// @Relationship(type = "PLAYED_WITH", direction = Relationship.OUTGOING)
-	// private List<Game> gamesPlayed;
-
-	// @Relationship(type = "RATING", direction = Relationship.OUTGOING)
-	// private Rating rating = new Rating();
-
-	// end::movie[]
 
 	public Event() {
 
+		this.playedwith = new HashSet<>();
 		this.uuid = DomainTools.getTimeBasedUUID();
 		this.eventname = createRandomEventName();
 	}
@@ -166,6 +156,20 @@ public class Event {
 
 		return ren.start + " " + ren.adj + " " + ren.noun + " " + ren.end;
 
+	}
+
+	@Override
+	public String toString() {
+		String gamelist = new String();
+		for (Game game : this.playedwith) {
+			gamelist = gamelist + "*" + game.getName();
+
+		}
+
+		return String.format(
+				"Event %s started at %s" //
+						+ "at location:%s with games: %s", //
+				this.eventname, this.start.toString(), this.location.getLocation(), gamelist);
 	}
 
 }

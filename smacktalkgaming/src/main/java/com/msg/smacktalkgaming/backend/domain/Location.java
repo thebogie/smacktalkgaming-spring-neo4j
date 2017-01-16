@@ -27,7 +27,7 @@ public class Location {
 	String googleGeocode = "AIzaSyCXSL3n9tI-VTgRJOhXqJJJ42D1FO1EGBE";
 
 	@GraphId
-	private Long id;
+	Long id;
 
 	@Property(name = "uuid")
 	private String uuid;
@@ -77,6 +77,7 @@ public class Location {
 		GeocodingResult[] results;
 		try {
 			results = GeocodingApi.geocode(context, location).await();
+			System.out.println("RESULT:" + results);
 			this.location = results[0].formattedAddress;
 			this.latitude = results[0].geometry.location.lat;
 			this.longitude = results[0].geometry.location.lng;
@@ -84,7 +85,7 @@ public class Location {
 			System.out.println(results[0].formattedAddress);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// e.printStackTrace();
 			// something happened... set the location to the string sent in. fix
 			// later
 			this.location = location;

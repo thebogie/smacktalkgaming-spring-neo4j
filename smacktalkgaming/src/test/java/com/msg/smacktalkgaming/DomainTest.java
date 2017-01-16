@@ -2,11 +2,15 @@ package com.msg.smacktalkgaming;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -16,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.TimeZone;
@@ -39,6 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msg.smacktalkgaming.MyNeo4jTestConfiguration;
 import com.msg.smacktalkgaming.backend.domain.*;
 import com.msg.smacktalkgaming.backend.domain.Player.SecurityRole;
@@ -47,6 +53,8 @@ import com.msg.smacktalkgaming.backend.entities.RecordResults;
 import com.msg.smacktalkgaming.backend.repos.*;
 import com.msg.smacktalkgaming.backend.services.EventService;
 import com.msg.smacktalkgaming.backend.services.PlayerService;
+
+import com.msg.smacktalkgaming.randomperson.RandomPerson;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = MyNeo4jTestConfiguration.class)
@@ -79,17 +87,6 @@ public class DomainTest {
 
 	@Autowired
 	private Glicko2Repository glicko2Repository;
-	/*
-	 * Event savedevent;
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 * @Autowired private RecordRepository recordRepository;
-	 */
 
 	public DomainTest() {
 	}
@@ -116,9 +113,81 @@ public class DomainTest {
 
 	}
 
-	@Test
-	public void addLocations() {
+	private Game createUniqueGame() {
+		Game retVal;
 
+		/**** GAME ****/
+		Game game = new Game();
+		game.setName("GAME:" + utcNow.toString());
+		game.setPublished("PUBLISH:" + utcNow.toString());
+		game.setBgglink("http://cnn.com");
+		retVal = game;
+
+		return retVal;
+	}
+
+	private Player createUniquePlayer() {
+		Player player = new Player();
+		ZonedDateTime snapshot = ZonedDateTime.now(ZoneOffset.UTC);
+		String playerName = "PLAYER " + snapshot.toString();
+
+		player.setFirstname(playerName);
+		player.setSurname("SURNAME:" + snapshot.toString());
+		player.setNickname("NICK:" + snapshot.toString());
+		// player.setCurrentevent("NICK");
+		// player.setBirthdate("11/11/2000");
+		// player.setBirthdate(new GregorianCalendar(1995, Calendar.FEBRUARY,
+		// 11).getTime());
+		player.setBirthdate(Date.from(birthdayTime.toInstant()));
+		player.setAlignment("LAWFUL GOOD");
+		player.setLogin("thebogie@live.com");
+		player.setPassword("fish");
+		player.setInfo("fish2");
+		player.setRole(SecurityRole.ROLE_USER, SecurityRole.ROLE_ADMIN);
+
+		try {
+
+			ObjectMapper mapper = new ObjectMapper();
+			com.msg.smacktalkgaming.randomperson.RandomPerson //
+			randomperson = mapper.readValue(new URL("https://randomuser.me/api/"),
+					com.msg.smacktalkgaming.randomperson.RandomPerson.class);
+
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+			player.setFirstname(randomperson.getResults().get(0).getName().getFirst());
+			player.setBirthdate(formatter.parse(randomperson.getResults().get(0).getDob()));
+			player.setAlignment("LAWFUL GOOD");
+			player.setLogin(randomperson.getResults().get(0).getEmail());
+			player.setPassword(randomperson.getResults().get(0).getLogin().getPassword());
+			System.out.println("Player:" + player.getFirstname() + "*login:" + player.getLogin() + "*password:"//
+					+ randomperson.getResults().get(0).getLogin().getPassword());
+
+			player.setInfo(randomperson.getResults().get(0).getLogin().getPassword());
+
+		} catch (IOException | ParseException ex) {
+			// | JsonParseException | JsonMappingException |
+			// MalformedURLException
+			System.out.println("randomuser.me failed:" + ex);
+
+		}
+		return player;
+
+	}
+
+	private Event createUniqueEvent() {
+		Event event = new Event();
+		ZonedDateTime snapshot = ZonedDateTime.now(ZoneOffset.UTC);
+		ZonedDateTime twohrslater = snapshot.plusHours(2);
+		String eventName = "Event " + snapshot.toString();
+
+		event.setStart(Date.from(snapshot.toInstant()));
+		event.setStop(Date.from(twohrslater.toInstant()));
+
+		return event;
+
+	}
+
+	private Location createLocation() {
+		Location retVal = new Location();
 		Random randomGenerator = new Random();
 
 		ArrayList<String> randomlocs = new ArrayList<String>();
@@ -130,16 +199,15 @@ public class DomainTest {
 		randomlocs.add("7255 North Second St. Temple Hills, MD ");
 		randomlocs.add("8108 Manor Lane Banning, CA 92220");
 
-		Location loc = new Location();
 		int index = randomGenerator.nextInt(randomlocs.size() - 1);
-		loc.setLocation(randomlocs.get(index));
-
+		retVal.setLocation(randomlocs.get(index));
+		return retVal;
 	}
 
 	@Test
 	public void updateRatingsFromMultipleEvents() {
 
-		HashMap testset = updateRatingsFromEvent();
+		// HashMap testset = updateRatingsFromEvent();
 
 		// HashMap testset2 = updateRatingsFromEvent();
 
@@ -148,9 +216,17 @@ public class DomainTest {
 
 	}
 
-	private HashMap<String, String> updateRatingsFromEvent() {
+	@Test
+	public void shouldBeAbleToRecordAnEvent() {
 
-		HashMap<String, String> retVal = new HashMap<String, String>();
+		ArrayList<Player> players = new ArrayList<Player>();
+		ArrayList<Record> records = new ArrayList<Record>();
+
+		Game game = createUniqueGame();
+		String gameUUID = game.getUUID();
+
+		Location location = createLocation();
+		String locationUUID = location.getUUID();
 
 		// 4 players
 		// 1 game
@@ -199,134 +275,48 @@ public class DomainTest {
 		playedin4.setEvent(event);
 		String playedin4UUID = playedin4.getUUID();
 
-		playerRepository.save(player1);
-		recordRepository.save(playedin1);
+		players.add(player1);
+		players.add(player2);
+		players.add(player3);
+		players.add(player4);
 
-		playerRepository.save(player2);
-		recordRepository.save(playedin2);
+		records.add(playedin1);
+		records.add(playedin2);
+		records.add(playedin3);
+		records.add(playedin4);
 
-		playerRepository.save(player3);
-		recordRepository.save(playedin3);
-
-		playerRepository.save(player4);
-		recordRepository.save(playedin4);
-
-		eventRepository.save(event);
-
-		// eventService.setRatingFromEvent(event, player1);
-
-		// eventService.setRatingFromEvent(event, player2);
-
-		// eventService.setRatingFromEvent(event, player3);
-
-		// eventService.setRatingFromEvent(event, player4);
-
-		eventService.UpdateRatingsFromEvent(event.getUUID());
+		String recordedEventUUID = eventService.RecordEvent(event, game, location, players, records);
 
 		// first place
-		assertEquals(1799.62, playerRepository.findGlicko2CurrentRating(player1UUID).getRating(), 0.01);
-		assertEquals(227.73, playerRepository.findGlicko2CurrentRating(player1UUID).getRatingdeviation(), 0.01);
-		assertEquals(0.060001, playerRepository.findGlicko2CurrentRating(player1UUID).getVolatility(), 0.01);
+		assertEquals(1799.62, playerService.getCurrentRating(player1).getRating(), 0.01);
+		assertEquals(227.73, playerService.getCurrentRating(player1).getRatingdeviation(), 0.01);
+		assertEquals(0.060001, playerService.getCurrentRating(player1).getVolatility(), 0.01);
 
 		// sceond place
-		assertEquals(1599.87, playerRepository.findGlicko2CurrentRating(player2UUID).getRating(), 0.01);
-		assertEquals(227.73, playerRepository.findGlicko2CurrentRating(player2UUID).getRatingdeviation(), 0.01);
-		assertEquals(0.059998, playerRepository.findGlicko2CurrentRating(player2UUID).getVolatility(), 0.01);
+		assertEquals(1599.87, playerService.getCurrentRating(player2).getRating(), 0.01);
+		assertEquals(227.73, playerService.getCurrentRating(player2).getRatingdeviation(), 0.01);
+		assertEquals(0.059998, playerService.getCurrentRating(player2).getVolatility(), 0.01);
 
 		// third place
-		assertEquals(1400.12, playerRepository.findGlicko2CurrentRating(player3UUID).getRating(), 0.01);
-		assertEquals(227.73, playerRepository.findGlicko2CurrentRating(player3UUID).getRatingdeviation(), 0.01);
-		assertEquals(0.059998, playerRepository.findGlicko2CurrentRating(player3UUID).getVolatility(), 0.01);
+		assertEquals(1400.12, playerService.getCurrentRating(player3).getRating(), 0.01);
+		assertEquals(227.73, playerService.getCurrentRating(player3).getRatingdeviation(), 0.01);
+		assertEquals(0.059998, playerService.getCurrentRating(player3).getVolatility(), 0.01);
 
 		// last place
-		assertEquals(1200.37, playerRepository.findGlicko2CurrentRating(player4UUID).getRating(), 0.01);
-		assertEquals(227.73, playerRepository.findGlicko2CurrentRating(player4UUID).getRatingdeviation(), 0.01);
-		assertEquals(0.060001, playerRepository.findGlicko2CurrentRating(player4UUID).getVolatility(), 0.01);
+		assertEquals(1200.37, playerService.getCurrentRating(player4).getRating(), 0.01);
+		assertEquals(227.73, playerService.getCurrentRating(player4).getRatingdeviation(), 0.01);
+		assertEquals(0.060001, playerService.getCurrentRating(player4).getVolatility(), 0.01);
 
-		retVal.put("player1", player1UUID);
-		retVal.put("player2", player2UUID);
-		retVal.put("player3", player3UUID);
-		retVal.put("player4", player4UUID);
-		retVal.put("event1", eventUUID);
+		// retVal.put("player1", player1UUID);
+		//// retVal.put("player2", player2UUID);
+		// retVal.put("player3", player3UUID);
+		// retVal.put("player4", player4UUID);
+		// retVal.put("event1", eventUUID);
 
-		return retVal;
 	}
 
 	@Test
 	public void shouldBeAbleToConnectEventToGame() {
-
-	}
-
-	@Test
-	public void addMultiplePlayedInsFromOnePlayer() {
-
-		Player player1 = createUniquePlayer();
-		String player1UUID = player1.getUUID();
-
-		Player player2 = createUniquePlayer();
-		String player2UUID = player2.getUUID();
-
-		Player player3 = createUniquePlayer();
-		String player3UUID = player3.getUUID();
-
-		Event event = createUniqueEvent();
-		String eventUUID = event.getUUID();
-
-		Event event2 = createUniqueEvent();
-		String event2UUID = event.getUUID();
-
-		playerRepository.save(player1);
-		playerRepository.save(player2);
-		playerRepository.save(player3);
-
-		eventRepository.save(event);
-		eventRepository.save(event2);
-
-		Record playedin1 = new Record();
-		playedin1.setPlayer(player1);
-		playedin1.setPlace(1);
-		playedin1.setResult(enumContestResults.WON);
-		playedin1.setEvent(event);
-		String playedin1UUID = playedin1.getUUID();
-		playerService.addNewPlayedIn(player1, playedin1);
-
-		Record playedin2 = new Record();
-		playedin2.setPlayer(player2);
-		playedin2.setPlace(2);
-		playedin2.setResult(enumContestResults.LOST);
-		playedin2.setEvent(event);
-		String playedin2UUID = playedin2.getUUID();
-		playerService.addNewPlayedIn(player2, playedin2);
-
-		Record playedin3 = new Record();
-		playedin3.setPlayer(player3);
-		playedin3.setPlace(3);
-		playedin3.setResult(enumContestResults.LOST);
-		playedin3.setEvent(event);
-		String playedin3UUID = playedin3.getUUID();
-		playerService.addNewPlayedIn(player3, playedin3);
-
-		eventRepository.save(event);
-
-		// SECOND EVENT
-		Record playedin1Event2 = new Record();
-		playedin1Event2.setPlayer(player1);
-		playedin1Event2.setPlace(2);
-		playedin1Event2.setResult(enumContestResults.LOST);
-		playedin1Event2.setEvent(event2);
-		playerService.addNewPlayedIn(player1, playedin1Event2);
-
-		Record playedin3Event2 = new Record();
-		playedin3Event2.setPlayer(player3);
-		playedin3Event2.setPlace(1);
-		playedin3Event2.setResult(enumContestResults.WON);
-		playedin3Event2.setEvent(event2);
-		playerService.addNewPlayedIn(player2, playedin3Event2);
-
-		eventRepository.save(event2);
-
-		Collection<RecordResults> records1 = eventRepository.fromEventGetPlayersRecords(eventUUID);
-		Collection<RecordResults> records2 = eventRepository.fromEventGetPlayersRecords(event2UUID);
 
 	}
 
@@ -361,42 +351,6 @@ public class DomainTest {
 		System.out.println("VLAUED:" + foundplayedin.getResult() + "*");
 
 		// TODO: assert values and delete everything
-
-	}
-
-	private Player createUniquePlayer() {
-		Player player = new Player();
-		ZonedDateTime snapshot = ZonedDateTime.now(ZoneOffset.UTC);
-		String playerName = "PLAYER " + snapshot.toString();
-
-		player.setFirstname(playerName);
-		player.setSurname("SURNAME:" + snapshot.toString());
-		player.setNickname("NICK:" + snapshot.toString());
-		// player.setCurrentevent("NICK");
-		// player.setBirthdate("11/11/2000");
-		// player.setBirthdate(new GregorianCalendar(1995, Calendar.FEBRUARY,
-		// 11).getTime());
-		player.setBirthdate(Date.from(birthdayTime.toInstant()));
-		player.setAlignment("LAWFUL GOOD");
-		player.setLogin("thebogie@live.com");
-		player.setPassword("fish");
-		player.setInfo("fish2");
-		player.setRole(SecurityRole.ROLE_USER, SecurityRole.ROLE_ADMIN);
-
-		return player;
-
-	}
-
-	private Event createUniqueEvent() {
-		Event event = new Event();
-		ZonedDateTime snapshot = ZonedDateTime.now(ZoneOffset.UTC);
-		ZonedDateTime twohrslater = snapshot.plusHours(2);
-		String eventName = "Event " + snapshot.toString();
-
-		event.setStart(Date.from(snapshot.toInstant()));
-		event.setStop(Date.from(twohrslater.toInstant()));
-
-		return event;
 
 	}
 

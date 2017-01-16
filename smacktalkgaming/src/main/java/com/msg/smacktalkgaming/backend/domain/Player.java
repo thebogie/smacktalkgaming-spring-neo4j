@@ -23,32 +23,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @NodeEntity(label = "player")
 public class Player {
 
-	@Relationship(type = "PLAYED_IN", direction = Relationship.OUTGOING)
-	private Collection<Record> records;
+	@Relationship(type = "PLAYED_IN")
+	private Set<Record> records;
 
-	public Collection<Record> getRecords() {
+	public Set<Record> getRecords() {
 		return this.records;
 	}
 
-	public void setRecords(Collection<Record> records) {
-		this.records = records;
-	}
-
-	public void addNewPlayedIn(Record record) {
-		ArrayList<Record> newlist = new ArrayList<Record>();
-		newlist.add(record);
-
-		if (this.records == null) {
-
-			this.records = newlist;
-
-		} else {
-			this.records.add(record);
-
-		}
-	}
-
-	// @Relationship(type = "CURRENT_RATING", direction = Relationship.OUTGOING)
+	@Relationship(type = "CURRENT_RATING", direction = Relationship.OUTGOING)
 	private Glicko2 currentrating;
 
 	public Glicko2 getCurrentrating() {
@@ -60,31 +42,14 @@ public class Player {
 	}
 
 	@Relationship(type = "WAS_RATED", direction = Relationship.OUTGOING)
-	private Collection<Glicko2> wasrated;
+	private Set<WasRated> wasrated;
 
-	public Collection<Glicko2> getWasRated() {
+	public Set<WasRated> getWasRated() {
 		return this.wasrated;
 	}
 
-	public void setWasRated(Collection<Glicko2> listwasrated) {
-		this.wasrated = listwasrated;
-	}
-
-	public void addWasRated(Glicko2 oldrating) {
-		ArrayList<Glicko2> newlist = new ArrayList<Glicko2>();
-		newlist.add(oldrating);
-		if (this.wasrated == null) {
-
-			this.wasrated = newlist;
-
-		} else {
-			this.wasrated.add(oldrating);
-
-		}
-	}
-
 	@GraphId
-	private Long id;
+	Long id;
 
 	public Long getID() {
 		return this.id;
@@ -135,15 +100,19 @@ public class Player {
 	// TODO: set UUID for all methods
 	public Player() {
 		this.uuid = DomainTools.getTimeBasedUUID();
+		this.wasrated = new HashSet<>();
+		this.records = new HashSet<>();
 	}
 
 	public Player(String login, String firstname, String password) {
+		this();
 		this.login = login;
 		this.firstname = firstname;
 		this.password = password;
 	}
 
 	public Player(String login, String firstname, String password, SecurityRole... roles) {
+		this();
 		this.login = login;
 		this.firstname = firstname;
 		this.password = encode(password);
@@ -284,6 +253,13 @@ public class Player {
 
 	public void setLogin(String login) {
 		this.login = login;
+	}
+
+	@Override
+	public String toString() {
+
+		return String.format("Player name:%s passowrd:%s and login:%s with rating %.0f", //
+				this.firstname, this.password, this.login, this.getCurrentrating().getRating());
 	}
 
 }
