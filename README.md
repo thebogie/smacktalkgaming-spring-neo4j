@@ -1,2 +1,2 @@
 # smacktalkgaming-spring-neo4j
-Spring 4, neo4j, vaadin
+Smacktalkgaming is a Spring/Neo4j/Vaadin site to keep track of board game stats using Glicko2 ratings
